@@ -1,0 +1,9 @@
+1st week plan:
+- Manh: implements 2 more heuristic (upper bound) algorithms: RLF and Tabu search (or Genetic Algorithm if Tabu search is not feasible)
+- Simon: implements 1 more exact algorithm: Brown's modified algorithm aka Branch and bound
+- Mathias: continues working on the maximal independence set aka the best exact algorithm known so far!
+- Stan: discovers more families of graphs that can be solved in polynomial time. Starts with: perfect graph, chordal graph (a subclass of perfect graph). For each class, implements 2 things: test if the input graph belongs to this class and if so how to compute its the chromatic number.
+- Paula: studies the graph connectivity, implements an algorithm that divides the input graph into connected components.
+
+2nd week plan:
+- Build a ML classifier (if necessary) for algorithm selection.
