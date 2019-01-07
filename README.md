@@ -19,7 +19,7 @@ MANUAL GUIDELINES ON USING MY gameAlgorithm.java file:
 - chromaticnumDFS(): the exact algorithm we already have from phase 2. It based on Depth First Search with pruning or Backtracking (they are the same).
 
 3. RUNNING ON CMD
-When you run the file after compilation, just write the number of the graph instead of its fucking long name: block3.... For example: java gameAlgorithm 05
+- When you run the file after compilation, just write the number of the graph instead of its fucking long name: block3.... For example: java gameAlgorithm 05
 
 
 
