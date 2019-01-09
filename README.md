@@ -12,6 +12,7 @@ MANUAL GUIDELINES ON USING MY gameAlgorithm.java file:
 - count: a 2-D integer array of nodes and corresponding degrees in degree-ascending order. It looks like this: {{2,1},{5,1},{3,3},{4,4},{1,4}}.
 - countList: an ArrayList of (only) nodes in degree-descending order. It looks like this for the same example as above: [1,4,3,5,2]
 - adjacencyMatrix: a 2-D n x n array representing the whole graph. The entry in i th row and j th column is 1 if nodes i,j are connected, otherwise it is 0. By convention, all the entries of the diagonal are 0, which means a node is not connected to itself.
+- cliqueGraph: an ArrayList of Integers representing the biggest clique subgraph of the input graph. Need to call lowerBound() first to fill it up.
 
 2. METHODS:
 - readGraph(): call it in the main method to create and fill up all the variables above.
