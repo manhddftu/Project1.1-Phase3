@@ -35,62 +35,70 @@ import java.util.List;
  * @since   2019-01-07
  */
 
-		class ColEdge
-			{
-			int u;
-			int v;
-			}
-		
+class ColEdge
+{
+    int u;
+    int v;
+}
+
 public class gameAlgorithm
-		{
+{
 
-		public static  int n = -1; // number of nodes
-		private static int n2; // number of nodes which are connected to at least 1 node other than themselve
-		private static int m = 0; // number of edges
-		private final static boolean DEBUG = true;
-		private final static String COMMENT = "//";
-		private static ArrayList<ArrayList<Integer>> graphList = new ArrayList<ArrayList<Integer>>(); // stores all the edges of the graph here
-		private static int[][] count ; // stores the nodes and corresponding degrees in an degree-ascending order
-		private static String graphName;
-		private static int[][] adjacencyMatrix;
-		private static int[][] colorMatrix; // for RLF
-		private static ArrayList<Integer> countList = new ArrayList<Integer>();
+    public static  int n = -1; // number of nodes
+    private static int n2; // number of nodes which are connected to at least 1 node other than themselve
+    private static int m = 0; // number of edges
+    private final static boolean DEBUG = true;
+    private final static String COMMENT = "//";
+    private static ArrayList<ArrayList<Integer>> graphList = new ArrayList<ArrayList<Integer>>(); // stores all the edges of the graph here
+    private static int[][] count ; // stores the nodes and corresponding degrees in an degree-ascending order
+    private static String graphName;
+    private static int[][] adjacencyMatrix;
+    private static int[][] colorMatrixRLF; // for RLF
+    private static int[][] colorMatrixWP; // for WP
+    private static ArrayList<Integer> countList = new ArrayList<Integer>();
+    private static ArrayList<Integer> countListWP = new ArrayList<Integer>();
+    private static int[][] countUnsorted; // stores the nodes and corresponding degrees in an node-ascending order
+    private static ArrayList<Integer> cliqueGraph; // biggest clique subgraph of the input graph. Need to call lowerBound() first to fill it up
 
-		public gameAlgorithm() {
-			readGraph();
-		}
+    public gameAlgorithm() {
+        readGraph();
 
+    }
 
-		public static void main(String[] args) {
-			graphName = args[0];
-			readGraph();
-			System.out.println(chromaticnumDFS());
-			System.out.println(upperboundWP());
-			System.out.println(lowerBound());
-
-		}
-
-		// CHECKER: PASS THE SET OF COLORED NODES BY THE USER AS INPUT THEN RETURN IF IT VIOLATES THE BIG RULE: NO CONNECTED NODES SHARE THE SAME COLOR
-
-		public static boolean checker(int[][] colored) {
-
-			boolean checker = false;
-
-			for (int i = 0; i<graphList.size();i++) {
-				int node1 = graphList.get(i).get(0);
-				int node2 = graphList.get(i).get(1);
-				if (colored[node1-1][1] != 0 && colored[node2-1][1] != 0 && colored[node1-1][1] == colored[node2-1][1]) {
-					checker = true;
-					break;
-				}
-
-			}
-
-			return checker;
+    public static void main(String[] args) {
+        graphName = args[0];
+        readGraph();
+        //System.out.println(upperboundRLF(1,countList));
+        //System.out.println(upperboundWP());
+        System.out.println(lowerBound());
+        System.out.println(cliqueGraph);
 
 
 
-		}
+    }
+
+    // CHECKER: PASS THE SET OF COLORED NODES BY THE USER AS INPUT THEN RETURN IF IT VIOLATES THE BIG RULE: NO CONNECTED NODES SHARE THE SAME COLOR
+
+    public static boolean checker(int[][] colored) {
+
+        boolean checker = false;
+
+        for (int i = 0; i<graphList.size();i++) {
+            int node1 = graphList.get(i).get(0);
+            int node2 = graphList.get(i).get(1);
+            if (colored[node1-1][1] != 0 && colored[node2-1][1] != 0 && colored[node1-1][1] == colored[node2-1][1]) {
+                checker = true;
+                System.out.println(node1 + " and " + node2);
+                break;
+            }
+
+        }
+
+        return checker;
+
+
+
+    }
 
 		/*
 		//HINTING GAME MODE 1: SIMPLY RETURNS THE CHROMATIC NUMBER AND ONE WAY OF COLORING
@@ -158,84 +166,85 @@ public class gameAlgorithm
 
 		*/
 
-		private static void readGraph() {
+    private static void readGraph() {
 
 
-			String inputfile = "block3_2018_graph" +graphName+".txt";
+        String inputfile = "block3_2018_graph" +graphName+".txt";
 
-			boolean seen[] = null;
+        boolean seen[] = null;
 
-			//! n is the number of vertices in the graph
-
-
-			//! m is the number of edges in the graph
+        //! n is the number of vertices in the graph
 
 
-			//! e will contain the edges of the graph
-			ColEdge e[] = null;
+        //! m is the number of edges in the graph
 
-			try 	{
-				FileReader fr = new FileReader(inputfile);
-				BufferedReader br = new BufferedReader(fr);
 
-				String record = new String();
+        //! e will contain the edges of the graph
+        ColEdge e[] = null;
 
-				//! THe first few lines of the file are allowed to be comments, staring with a // symbol.
-				//! These comments are only allowed at the top of the file.
+        try 	{
+            FileReader fr = new FileReader(inputfile);
+            BufferedReader br = new BufferedReader(fr);
 
-				//! -----------------------------------------
-				while ((record = br.readLine()) != null)
-				{
-					if( record.startsWith("//") ) continue;
-					break; // Saw a line that did not start with a comment -- time to start reading the data in!
-				}
+            String record = new String();
 
-				if( record.startsWith("VERTICES = ") )
-				{
-					n = Integer.parseInt( record.substring(11) );
-					//if(DEBUG) System.out.println(COMMENT + " Number of vertices = "+n);
-				}
+            //! THe first few lines of the file are allowed to be comments, staring with a // symbol.
+            //! These comments are only allowed at the top of the file.
 
-				seen = new boolean[n+1];
+            //! -----------------------------------------
+            while ((record = br.readLine()) != null)
+            {
+                if( record.startsWith("//") ) continue;
+                break; // Saw a line that did not start with a comment -- time to start reading the data in!
+            }
 
-				record = br.readLine();
+            if( record.startsWith("VERTICES = ") )
+            {
+                n = Integer.parseInt( record.substring(11) );
+                //if(DEBUG) System.out.println(COMMENT + " Number of vertices = "+n);
+            }
 
-				if( record.startsWith("EDGES = ") )
-				{
-					m = Integer.parseInt( record.substring(8) );
-					//if(DEBUG) System.out.println(COMMENT + " Expected number of edges = "+m);
-				}
+            seen = new boolean[n+1];
 
-				e = new ColEdge[m];
+            record = br.readLine();
 
-				for( int d=0; d<m; d++)
-				{
-					//if(DEBUG) System.out.println(COMMENT + " Reading edge "+(d+1));
-					record = br.readLine();
-					String data[] = record.split(" ");
-					if( data.length != 2 )
-					{
-						System.out.println("Error! Malformed edge line: "+record);
-						System.exit(0);
-					}
-					e[d] = new ColEdge();
+            if( record.startsWith("EDGES = ") )
+            {
+                m = Integer.parseInt( record.substring(8) );
+                //if(DEBUG) System.out.println(COMMENT + " Expected number of edges = "+m);
+            }
 
-					e[d].u = Integer.parseInt(data[0]);
-					e[d].v = Integer.parseInt(data[1]);
-					if (e[d].u > e[d].v) {
-						int a = e[d].u;
-						e[d].u = e[d].v;
-						e[d].v = a;
-					}
+            e = new ColEdge[m];
 
-					seen[ e[d].u ] = true;
-					seen[ e[d].v ] = true;
+            for( int d=0; d<m; d++)
+            {
+                //if(DEBUG) System.out.println(COMMENT + " Reading edge "+(d+1));
+                record = br.readLine();
+                //record = record.substring(2);
+                String data[] = record.split(" ");
+                if( data.length != 2 )
+                {
+                    System.out.println("Error! Malformed edge line: "+record);
+                    System.exit(0);
+                }
+                e[d] = new ColEdge();
 
-					//if(DEBUG) System.out.println(COMMENT + " Edge: "+ e[d].u +" "+e[d].v);
+                e[d].u = Integer.parseInt(data[0]);
+                e[d].v = Integer.parseInt(data[1]);
+                if (e[d].u > e[d].v) {
+                    int a = e[d].u;
+                    e[d].u = e[d].v;
+                    e[d].v = a;
+                }
 
-				}
+                seen[ e[d].u ] = true;
+                seen[ e[d].v ] = true;
 
-				String surplus = br.readLine();
+                //if(DEBUG) System.out.println(COMMENT + " Edge: "+ e[d].u +" "+e[d].v);
+
+            }
+
+            String surplus = br.readLine();
 				/*
 				if( surplus != null )
 				{
@@ -243,574 +252,702 @@ public class gameAlgorithm
 				}
 				*/
 
-			}
-			catch (IOException ex)
-			{
-				// catch possible io errors from readLine()
-				System.out.println("Error! Problem reading file "+inputfile);
-				System.exit(0);
-			}
+        }
+        catch (IOException ex)
+        {
+            // catch possible io errors from readLine()
+            System.out.println("Error! Problem reading file "+inputfile);
+            System.exit(0);
+        }
 
-			for( int x=1; x<=n; x++ )
-			{
-				if( seen[x] == false )
-				{
-					//if(DEBUG) System.out.println(COMMENT + " Warning: vertex "+x+" didn't appear in any edge : it will be considered a disconnected vertex on its own.");
-				}
-			}
+        for( int x=1; x<=n; x++ )
+        {
+            if( seen[x] == false )
+            {
+                //if(DEBUG) System.out.println(COMMENT + " Warning: vertex "+x+" didn't appear in any edge : it will be considered a disconnected vertex on its own.");
+            }
+        }
 
-			// Store all the edges in an 2-D int array named Graph
-			int[][] Graph = new int[m][2];
-			for (int i =0; i< m; i++) {
-				Graph[i][0] = e[i].u;
-				Graph[i][1] = e[i].v;
-			}
-
-			count = new int[n][2];
-
-			adjacencyMatrix = new int[n][n];
-
-
-			for (int i = 0; i<m; i++) {
-				if (Graph[i][0] !=0 && Graph[i][1]!=0) {
-					ArrayList<Integer> elm = new ArrayList<Integer>();
-					elm.add(Graph[i][0]);
-					elm.add(Graph[i][1]);
-
-					graphList.add(elm);
-					adjacencyMatrix[Graph[i][0]-1][Graph[i][1]-1]=1;
-					adjacencyMatrix[Graph[i][1]-1][Graph[i][0]-1]=1;
-
-				}
-			}
+        // Store all the edges in an 2-D int array named Graph
+        int[][] Graph = new int[m][2];
+        for (int i =0; i< m; i++) {
+            Graph[i][0] = e[i].u;
+            Graph[i][1] = e[i].v;
+        }
 
-
-			//! At this point e[0] will be the first edge, with e[0].u referring to one endpoint and e[0].v to the other
-			//! e[1] will be the second edge...
-			//! (and so on)
-			//! e[m-1] will be the last edge
-			//!
-			//! there will be n vertices in the graph, numbered 1 to n
+        count = new int[n][2];
 
-			for (int i=0; i<n;i++) {
-				count[i][0] = i+1;
-			}
+        adjacencyMatrix = new int[n][n];
+
+
+        for (int i = 0; i<m; i++) {
+            if (Graph[i][0] !=0 && Graph[i][1]!=0) {
+                ArrayList<Integer> elm = new ArrayList<Integer>();
+                elm.add(Graph[i][0]);
+                elm.add(Graph[i][1]);
+
+                graphList.add(elm);
+                adjacencyMatrix[Graph[i][0]-1][Graph[i][1]-1]=1;
+                adjacencyMatrix[Graph[i][1]-1][Graph[i][0]-1]=1;
+
+            }
+        }
 
-			for (int i = 0; i< m; i++) {
-				count[Graph[i][0]-1][1] ++;
-				count[Graph[i][1]-1][1] ++;
+
+        //! At this point e[0] will be the first edge, with e[0].u referring to one endpoint and e[0].v to the other
+        //! e[1] will be the second edge...
+        //! (and so on)
+        //! e[m-1] will be the last edge
+        //!
+        //! there will be n vertices in the graph, numbered 1 to n
 
-			}
-			int[][] countUnsorted = new int[n][2];
-			System.arraycopy(count,0,countUnsorted,0,count.length);
-			Arrays.sort(count, (a, b) -> Integer.compare(a[1], b[1]));
+        for (int i=0; i<n;i++) {
+            count[i][0] = i+1;
+        }
 
-			for (int i = 0; i<n; i++) {
-				if (count[i][1]!=0)
-					n2++;
-
-
-			}
+        for (int i = 0; i< m; i++) {
+            count[Graph[i][0]-1][1] ++;
+            count[Graph[i][1]-1][1] ++;
 
-			colorMatrix = new int[n][2];
-			for (int i = 0; i<n;i++) {
-				colorMatrix[i][0] = i+1;
-			}
+        }
+        countUnsorted = new int[n][2];
+        System.arraycopy(count,0,countUnsorted,0,count.length);
+        Arrays.sort(count, (a, b) -> Integer.compare(a[1], b[1]));
 
-			int[][] countDescending = new int[n][2] ;
+        for (int i = 0; i<n; i++) {
+            if (count[i][1]!=0)
+                n2++;
 
-			for (int i = 0; i<= n-1; i++) {
-				countDescending[i] = count[n-1-i];
-			}
-			for (int i = 0; i<= n-1; i++) {
-				countList.add(countDescending[i][0]);
-			}
 
-		}
+        }
 
+        colorMatrixRLF = new int[n][2];
+        for (int i = 0; i<n;i++) {
+            colorMatrixRLF[i][0] = i+1;
+        }
 
-		// Welsh - Powell algorithm to calculate upper bound:
-			    
+        colorMatrixWP = colorMatrixRLF;
 
-		private static int upperboundWP()
+        int[][] countDescending = new int[n][2] ;
+
+        for (int i = 0; i<= n-1; i++) {
+            countDescending[i] = count[n-1-i];
+        }
+        for (int i = 0; i<= n-1; i++) {
+            countList.add(countDescending[i][0]);
+        }
+
+        countListWP.addAll(countList);
+
+    }
 
-		{
-			// Store the nodes and corresponding degrees in degree-descending order
-
-			int[][] countDescending = new int[n][2] ;	
-
-			for (int i = 0; i<= n-1; i++) {
-			countDescending[i] = count[n-1-i];
-			}
-
-			ArrayList<Integer> countList = new ArrayList<Integer>();
-		    for (int i = 0; i<= n-1; i++) {
-		    countList.add(countDescending[i][0]);   
-		    }
-		    
-		    
-		    int upperBound = 0;
-		    
-		    boolean colorable = true;
-
-		    
-		    while (countList.size() != 0) {
+
+    // Welsh - Powell algorithm to calculate upper bound:
+
+
+    private static int upperboundWP()
+
+    {
+        // Store the nodes and corresponding degrees in degree-descending order
+
+        ArrayList<Integer> countListLocal = countListWP;
+        int upperBound = 0;
+
+        while (countListLocal.size() != 0) {
+
+            upperBound ++;
+            int highestNode = countListLocal.get(0);
+            colorMatrixWP[highestNode-1][1] = upperBound;
+            countListLocal.remove(0);
+            ArrayList<Integer> coloredNodes = new ArrayList<Integer>();
+            coloredNodes.add(highestNode);
+            ArrayList<Integer> nonadjacent = new ArrayList<Integer>();
+            for (int j = 0; j<= countListLocal.size()-1; j++) {
+                if (adjacencyMatrix[highestNode-1][countListLocal.get(j)-1]==0) {
+                    nonadjacent.add(countListLocal.get(j));
+                }
+            }
+
+            while(nonadjacent.size()!=0) {
+                int selectedNode = nonadjacent.get(0);
+                nonadjacent.remove(0);
+                colorMatrixWP[selectedNode-1][1]=upperBound;
+                coloredNodes.add(selectedNode);
+                ArrayList<Integer> nonadjacentTemp = new ArrayList<Integer>();
+                for (int i = 0; i<nonadjacent.size();i++ ) {
+                    if (adjacencyMatrix[selectedNode-1][nonadjacent.get(i)-1]==0)
+                        nonadjacentTemp.add(nonadjacent.get(i));
+                }
+                nonadjacent = nonadjacentTemp;
+            }
+
+            ArrayList<Integer> countListTemp = new ArrayList<Integer>();
+            for (int i = 0; i<= countListLocal.size()-1;i++) {
+                if (!coloredNodes.contains(countListLocal.get(i))) {
+                    countListTemp.add(countListLocal.get(i));
+                }
+            }
+
+            countListLocal = countListTemp;
+            //System.out.println(countListLocal);
+
+
+        }
+
+        return upperBound;
+
+
+
+    }
+
+    // Recursive Largest Algorithm method to compute the upper bound
+
+    private static int upperboundRLF(int k, ArrayList<Integer> countListParameter) {
+
+        if (countListParameter.size() == 0) {
+            return k;
+        }
+
+        else {
+            ArrayList<Integer> countListLocal = countListParameter;
+            int selectedNode = countListLocal.get(0);
+            countListLocal.remove(countListLocal.indexOf(selectedNode));
+            ArrayList<Integer> adjacent = new ArrayList<Integer>();
+            ArrayList<Integer> nonadjacent = new ArrayList<Integer>();
+            for (int i = 0; i < countListLocal.size(); i++) {
+                if (adjacencyMatrix[selectedNode - 1][countListLocal.get(i)-1] == 1)
+                    adjacent.add(countListLocal.get(i));
+                else
+                    nonadjacent.add(countListLocal.get(i));
+            }
+            int adjacentCount = adjacent.size();
+            int nonadjacentCount = nonadjacent.size();
+            colorMatrixRLF[selectedNode - 1][1] = k;
+            //System.out.println("Color " + selectedNode + "with " + k);
+
+            int[][] nonadjacentDegree = new int[nonadjacentCount][2];
+            for (int i = 0; i < nonadjacentCount; i++) {
+                nonadjacentDegree[i][0] = nonadjacent.get(i);
+            }
+            for (int i = 0; i < nonadjacentCount; i++) {
+                for (int j = 0; j < adjacentCount; j++) {
+                    if (adjacencyMatrix[nonadjacent.get(i) - 1][adjacent.get(j) - 1] == 1)
+                        nonadjacentDegree[i][1]++;
+
+                }
+            }
+
+            Arrays.sort(nonadjacentDegree, (a, b) -> Integer.compare(a[1], b[1]));
+
+            ArrayList<Integer> nonadjacentDegreeDescending = new ArrayList<Integer>();
+            for (int i = nonadjacentCount - 1; i >= 0; i--) {
+                nonadjacentDegreeDescending.add(nonadjacentDegree[i][0]);
+            }
+            //System.out.println("non:" + nonadjacentDegreeDescending);
+            //System.out.println("adj:" + adjacent);
+
+
+            while (nonadjacentDegreeDescending.size()!= 0) {
+                int nextNode = nonadjacentDegreeDescending.get(0);
+                colorMatrixRLF[nextNode - 1][1] = k;
+                //System.out.println("Color " + nextNode + "with " + k);
+                nonadjacentDegreeDescending.remove(nonadjacentDegreeDescending.indexOf(nextNode));
+                ArrayList<Integer> nonadjacentTemp = new ArrayList<Integer>();
+                for (int i = 0; i < nonadjacentDegreeDescending.size(); i++) {
+                    if (adjacencyMatrix[nextNode - 1][nonadjacentDegreeDescending.get(i) - 1] == 1) {
+                        adjacent.add(nonadjacentDegreeDescending.get(i));
+                        //nonadjacentDegreeDescending.set(nonadjacentDegreeDescending.indexOf(nonadjacentDegreeDescending.get(i)),null);
+                        }
+                     else {
+                        nonadjacentTemp.add(nonadjacentDegreeDescending.get(i));
+                    }
+
+                }
+
+                nonadjacentDegreeDescending = nonadjacentTemp;
+
+
+                int[][] nonadjacentDegreeLoop = new int[nonadjacentDegreeDescending.size()][2];
+                for (int i = 0; i < nonadjacentDegreeDescending.size(); i++) {
+                    nonadjacentDegreeLoop[i][0] = nonadjacentDegreeDescending.get(i);
+                    for (int j = 0; j < adjacent.size(); j++) {
+                        if (adjacencyMatrix[nonadjacentDegreeDescending.get(i) - 1][adjacent.get(j) - 1] == 1)
+                            nonadjacentDegreeLoop[i][1]++;
+                    }
+                }
+                Arrays.sort(nonadjacentDegreeLoop, (a, b) -> Integer.compare(a[1], b[1]));
+                ArrayList<Integer> nonadjacentDegreeDescendingLoop = new ArrayList<Integer>();
+                for (int i = 0; i < nonadjacentDegreeDescending.size(); i++) {
+                    nonadjacentDegreeDescendingLoop.add(nonadjacentDegreeLoop[i][0]);
+                }
+                nonadjacentDegreeDescending = nonadjacentDegreeDescendingLoop;
+
+
+            }
+
+            ArrayList<Integer> newNodeList = new ArrayList<Integer>();
+            for (int i =0;i<n;i++) {
+                if(colorMatrixRLF[i][1]==0)
+                    newNodeList.add(i+1);
+            }
+            if (newNodeList.size()==0)
+                return k;
+            else {
+                ArrayList<Integer> newCountList = buildCountList(newNodeList);
+                //System.out.println(newCountList);
+                return upperboundRLF(k + 1, newCountList);
+            }
+
+
+        }
+
+
+
+    }
+
+    private static ArrayList<Integer> buildCountList(ArrayList<Integer> nodeList) {
+        ArrayList<Integer> countList = new ArrayList<Integer>();
+        int[][] countAscending = new int[nodeList.size()][2];
+        for (int i =0; i<nodeList.size();i++) {
+            countAscending[i][0]= nodeList.get(i);
+        }
+        for(int i = 0; i<nodeList.size()-1;i++) {
+            for (int j = i+1; j<nodeList.size();j++) {
+                if(adjacencyMatrix[nodeList.get(i)-1][nodeList.get(j)-1]==1) {
+                    countAscending[i][1]++;
+                    countAscending[j][1]++;
+                }
+            }
+        }
+        Arrays.sort(countAscending, (a, b) -> Integer.compare(a[1], b[1]));
+        for (int i = countAscending.length-1;i>=1;i--) {
+            for (int j = i-1;j>=0;j--) {
+                if (countAscending[i][1] == countAscending[j][1]) {
+                    if (countUnsorted[countAscending[i][0]-1][1] < countUnsorted[countAscending[j][0]-1][1]) {
+                        int temp = countAscending[i][0];
+                        countAscending[i][0] = countAscending[j][0];
+                        countAscending[j][0]= temp;
+                    }
 
-				int highestNode = countList.get(0);
-				countList.remove(countList.indexOf(countList.get(0)));
-				ArrayList<Integer> coloredNodes = new ArrayList<Integer>();
-				coloredNodes.add(highestNode);
-				for (int j = 0; j<= countList.size()-1; j++) {
-					int v = 0;
-					while (v<= coloredNodes.size()-1) {
-
-						int node1 = coloredNodes.get(v);
-						int node2 = countList.get(j);
-						if (adjacencyMatrix[node1-1][node2-1]==1) {
-							colorable = false;
-							break;
-						}
-
-						else{
-							colorable = true;
-							v++;
-						}
-
-					}
-
-					if (colorable == true) {
-						coloredNodes.add(countList.get(j));
-
-					}
+                }
+            }
+        }
+        for (int i = countAscending.length-1;i>=0;i--) {
+            countList.add(countAscending[i][0]);
+        }
+        return countList;
 
-				}
+    }
 
-				for (int u = 0; u<= coloredNodes.size()-1;u++) {
 
-					if (countList.contains(coloredNodes.get(u))){
-						countList.remove(countList.indexOf(coloredNodes.get(u)));
-					}
-				}
+    // Produce the lower bound by searching for the clique number of a given graph
 
+    private static int lowerBound()
 
-				upperBound ++;
-		    	
-		    }
-		    
-		    return upperBound;
-		    
-			
-	
-		}
+    {
 
+        int lowerBound = 2;
+        int upperBound = upperboundWP();
+        System.out.println(upperBound);
 
-      // Produce the lower bound by searching for the clique number of a given graph
-      
-      private static int lowerBound()
-      
-      {
+        //System.out.println(upperBound);
 
-		  int lowerBound = 2;
-		  int upperBound = upperboundWP();
+        boolean clique = true;
 
-		  //System.out.println(upperBound);
+        while (clique == true && lowerBound <= upperBound)
+        {
+            if (clique(n,lowerBound).size()>0)
+            {
+                cliqueGraph = clique(n,lowerBound).get(0);
+                lowerBound++;
+            }
 
-		  boolean clique = true;
+            else {
+                clique = false;
+            }
 
-		  while (clique == true && lowerBound <= upperBound)
-			  {
-				  if (clique(n2,lowerBound).size()>0)
-					  {
-					  lowerBound++;
-					  }
 
-				  else {
-				  clique = false;
-				  }
+        }
+        return lowerBound-1;
 
+    }
 
-			  }
-		  return lowerBound-1;
-      
-      }
-			
-    	
-    	
-    	
-      // Methods "combine" and "dfs2" are supposed to produce all the k-length combinations of the set of integers from 1 to n by DFS
 
-		private static ArrayList<ArrayList<Integer>> combine(int n, int k)
-		{
-			ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
 
-			if (n <= 0 || n < k)
-				return result;
 
-			ArrayList<Integer> item = new ArrayList<Integer>();
-			dfs2(n, k, 1, item, result); // because it needs to begin from 1
+    // Methods "combine" and "dfs2" are supposed to produce all the k-length combinations of the set of integers from 1 to n by DFS
 
-			return result;
-		}
+    private static ArrayList<ArrayList<Integer>> combine(int n, int k)
+    {
+        ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
 
+        if (n <= 0 || n < k)
+            return result;
 
+        ArrayList<Integer> item = new ArrayList<Integer>();
+        dfs2(n, k, 1, item, result); // because it needs to begin from 1
 
-		private static void dfs2(int n, int k, int start, ArrayList<Integer> item,
-			ArrayList<ArrayList<Integer>> res) {
-		if (item.size() == k) {
-			res.add(new ArrayList<Integer>(item));
-			return;
-		}
+        return result;
+    }
 
-		for (int i = start; i <= n; i++) {
-			item.add(i);
-			dfs2(n, k, i + 1, item, res);
-			item.remove(item.size() - 1);
-		}
-		}
 
-		// Methods "clique" and "dfs3" are supposed to search for a clique subgraph of size k in a given graph of size n by DFS
 
-		private static ArrayList<ArrayList<Integer>> clique(int n, int k)
-		{
-			ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
+    private static void dfs2(int n, int k, int start, ArrayList<Integer> item,
+                             ArrayList<ArrayList<Integer>> res) {
+        if (item.size() == k) {
+            res.add(new ArrayList<Integer>(item));
+            return;
+        }
 
-			if (n <= 0 || n < k)
-				return result;
+        for (int i = start; i <= n; i++) {
+            item.add(i);
+            dfs2(n, k, i + 1, item, res);
+            item.remove(item.size() - 1);
+        }
+    }
 
-			ArrayList<Integer> item = new ArrayList<Integer>();
-			dfs3(n, k, 1, item, result); // because it need to begin from 1
+    // Methods "clique" and "dfs3" are supposed to search for a clique subgraph of size k in a given graph of size n by DFS
 
-			return result;
+    private static ArrayList<ArrayList<Integer>> clique(int n, int k)
+    {
+        ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
 
-		}
+        if (n <= 0 || n < k)
+            return result;
 
+        ArrayList<Integer> item = new ArrayList<Integer>();
+        dfs3(n, k, 1, item, result); // because it need to begin from 1
 
-		private static void dfs3(int n, int k, int start, ArrayList<Integer> item, ArrayList<ArrayList<Integer>> res)
-		{
+        return result;
 
-			if (item.size() == k) {
-				res.add(new ArrayList<Integer>(item));
-				return;
-			}
+    }
 
-			for (int i = start; i <= n; i++) {
 
-				if (res.size()>0)
-					break;
+    private static void dfs3(int n, int k, int start, ArrayList<Integer> item, ArrayList<ArrayList<Integer>> res)
+    {
 
-				item.add(i);
-				boolean clique = true;
+        if (item.size() == k) {
+            res.add(new ArrayList<Integer>(item));
+            return;
+        }
 
-				if(item.size()>=2) {
-					ArrayList<ArrayList<Integer>> combination = combine(item.size(),2);
-					for (int j = 0; j< combination.size();j++)
+        for (int i = start; i <= n; i++) {
 
-						{
-						ArrayList<Integer> pair = new ArrayList<Integer>();
+            if (res.size()>0)
+                break;
 
-						pair.add(item.get(combination.get(j).get(0)-1));
-						pair.add(item.get(combination.get(j).get(1)-1));
+            item.add(i);
+            boolean clique = true;
 
-						if (!graphList.contains(pair))
-							{
-								clique = false;
-								break;
+            if(item.size()>=2) {
+                ArrayList<ArrayList<Integer>> combination = combine(item.size(),2);
+                for (int j = 0; j< combination.size();j++)
 
-							}
+                {
+                    ArrayList<Integer> pair = new ArrayList<Integer>();
 
-						}
+                    pair.add(item.get(combination.get(j).get(0)-1));
+                    pair.add(item.get(combination.get(j).get(1)-1));
 
-				}
+                    if (!graphList.contains(pair))
+                    {
+                        clique = false;
+                        break;
 
-			if (clique == true){
-				dfs3(n, k, i + 1, item, res);
+                    }
 
-			}
+                }
 
-			item.remove(item.size() - 1);
-			}
-		}
+            }
 
+            if (clique == true){
+                dfs3(n, k, i + 1, item, res);
 
+            }
 
-	
+            item.remove(item.size() - 1);
+        }
+    }
+
+
+
+
 
 //Figure out one way of coloring the graph with the minimum number of colors used, given a set of nodes colored by the user(s).
 
 
-	private static int[] coloring(int[][] colored) {
+    private static int[] coloring(int[][] colored) {
 
-	        colored = process(colored);
-	        
-	        int coloredNum = 0;
-	        
-	        for (int i = 0; i< colored.length;i++) {
-	        if (coloredNum < colored[i][1])
-	        	coloredNum = colored[i][1];
-	        }
-	
-			int[] result = new int[n];
-			
-			int lower = Math.max(lowerBound(),coloredNum);
-			int upperBound = upperboundWP();
-			
-			while (lower <= upperBound)
-				
-			{
-				
-				 int[] permutation = per(lower,n,colored);
-				
-				
-					if (permutation.length != 0) 
-						{
-							result = permutation;
-							break;
+        colored = process(colored);
 
-						}
-					else {
-					lower++;
-					}
-			}
-	
+        int coloredNum = 0;
 
-	
-		return result ;
-	
-		
-		
+        for (int i = 0; i< colored.length;i++) {
+            if (coloredNum < colored[i][1])
+                coloredNum = colored[i][1];
+        }
 
-	}
+        int[] result = new int[n];
+
+        int lower = Math.max(lowerBound(),coloredNum);
+        int upperBound = upperboundWP();
+
+        while (lower <= upperBound)
+
+        {
+
+            int[] permutation = per(lower,n,colored);
+
+
+            if (permutation.length != 0)
+            {
+                result = permutation;
+                break;
+
+            }
+            else {
+                lower++;
+            }
+        }
+
+
+
+        return result ;
+
+
+
+
+    }
 
 // Method "minimum" prints out the minimum number of colors needed and one way of coloring, given the set of nodes colored by the user(s).
 
 
-	private static int minimum(int[][] colored)	{
+    private static int minimum(int[][] colored)	{
 
-		int[] result = coloring(colored);
-		int min = 0;
+        int[] result = coloring(colored);
+        int min = 0;
 
-		for (int i = 0; i<result.length;i++) {
-			if (min < result[i])
-				min = result[i];
-		}
+        for (int i = 0; i<result.length;i++) {
+            if (min < result[i])
+                min = result[i];
+        }
 
-		return min;
+        return min;
 
-	}
+    }
 
-	public static int chromaticnumDFS() {
-
-
-		boolean checkComplete  = true;
-
-		boolean checkCycle = true;
-
-		//Check if the graph is a complete graph:
-
-		for (int i = 0; i<= n-1;i++) {
-			if (count[i][1] != n-1) {
-				checkComplete = false;
-				break ;
-			}
-		}
-
-		// Check if the graph is a cycle
-
-		for (int i = 0; i<= n-1;i++) {
-			if (count[i][1] != 2) {
-				checkCycle = false;
-				break ;
-			}
-		}
-
-	// Produce the exact chromatic number if the input graph is a cycle or a complete graph, else produce the upper bound and lower bound
+    public static int chromaticnumDFS() {
 
 
+        boolean checkComplete  = true;
 
-	if (checkCycle == true) {
-		if (n % 2 != 0) {
-			return 3;
-		}
-		else {
-			return 2;
-		}
+        boolean checkCycle = true;
 
-	} else if (checkComplete == true) {
-		return n; }
+        //Check if the graph is a complete graph:
 
+        for (int i = 0; i<= n-1;i++) {
+            if (count[i][1] != n-1) {
+                checkComplete = false;
+                break ;
+            }
+        }
 
-		else {
+        // Check if the graph is a cycle
 
-			if (upperboundWP() == lowerBound())
-				return upperboundWP();
-			else {
-				return minimum(new int[0][0]);
+        for (int i = 0; i<= n-1;i++) {
+            if (count[i][1] != 2) {
+                checkCycle = false;
+                break ;
+            }
+        }
 
-			}
-		}}
+        // Produce the exact chromatic number if the input graph is a cycle or a complete graph, else produce the upper bound and lower bound
 
 
 
-	
+        if (checkCycle == true) {
+            if (n % 2 != 0) {
+                return 3;
+            }
+            else {
+                return 2;
+            }
+
+        } else if (checkComplete == true) {
+            return n; }
+
+
+        else {
+
+            if (upperboundWP() == lowerBound())
+                return upperboundWP();
+            else {
+                return minimum(new int[0][0]);
+
+            }
+        }}
+
+
+
+
 // Methods "per" and "dfs" are supposed to produce (if there is) a satisfying coloring of the input graph with n colors and k nodes by DFS
 
-			
-	private static  int[] per(int n, int k, int[][] colored) {
 
-		if (n <= 0)
-			return new int[0];
+    private static  int[] per(int n, int k, int[][] colored) {
 
-		ArrayList<Integer> item = new ArrayList<Integer>();
-		int[] itemArray = new int[k];
+        if (n <= 0)
+            return new int[0];
 
-		for (int i = 0; i<colored.length;i++) {
-			itemArray[colored[i][0]-1] = colored[i][1];
+        ArrayList<Integer> item = new ArrayList<Integer>();
+        int[] itemArray = new int[k];
 
-		}
+        for (int i = 0; i<colored.length;i++) {
+            itemArray[colored[i][0]-1] = colored[i][1];
 
-
-		ArrayList<Integer> index = new ArrayList<Integer>();
-		for (int abc = 0; abc < itemArray.length;abc++) {
-			if (itemArray[abc] == 0)
-				index.add(abc);
-			}
+        }
 
 
-		return  dfs(n, k, item, itemArray,colored,index);
-	}
- 
-	private static int[] dfs(int n, int k, ArrayList<Integer> item, int[] itemArray , int[][] colored, ArrayList<Integer> index ) {
-
-	if (item.size() == k-colored.length) {
-
-		return itemArray;
-
-	}
+        ArrayList<Integer> index = new ArrayList<Integer>();
+        for (int abc = 0; abc < itemArray.length;abc++) {
+            if (itemArray[abc] == 0)
+                index.add(abc);
+        }
 
 
-	for (int i = 1; i <= n; i++) {
+        return  dfs(n, k, item, itemArray,colored,index);
+    }
 
-			if (item.size() == k-colored.length) {
+    private static int[] dfs(int n, int k, ArrayList<Integer> item, int[] itemArray , int[][] colored, ArrayList<Integer> index ) {
 
-			return itemArray;
+        if (item.size() == k-colored.length) {
 
-		}
+            return itemArray;
 
-			item.add(i);
-
-
-
-			int countCount = 0;
-			for (int o = 0; o< index.size(); o++) {
-				if (o < item.size())
-					{
-						itemArray[index.get(o)] = item.get(countCount);
-						countCount++;
-
-					}
-				else {
-				break;
-				}
+        }
 
 
-			}
+        for (int i = 1; i <= n; i++) {
+
+            if (item.size() == k-colored.length) {
+
+                return itemArray;
+
+            }
+
+            item.add(i);
 
 
 
-			boolean color = true;
-			for (int j = 0; j< graphList.size();j++)
-				{
-					if (itemArray.length>= graphList.get(j).get(1)){
-					if (itemArray[(graphList.get(j).get(0)-1)] != 0 && itemArray[(graphList.get(j).get(1)-1)] !=0 && itemArray[(graphList.get(j).get(0)-1)] == itemArray[(graphList.get(j).get(1)-1)])
-						{
-							color = false;
-							break;
-						}
-					}
-				}
+            int countCount = 0;
+            for (int o = 0; o< index.size(); o++) {
+                if (o < item.size())
+                {
+                    itemArray[index.get(o)] = item.get(countCount);
+                    countCount++;
+
+                }
+                else {
+                    break;
+                }
 
 
-			if (color == true) {
-
-				if (item.size() == k-colored.length) {
-
-			return itemArray;
-
-		}
-
-			dfs(n, k, item, itemArray,colored,index);
-			}
-
-			item.remove(item.size() - 1);
-
-			for (int o = 0; o<index.size();o++) {
-				itemArray[index.get(o)] = 0;
-			}
+            }
 
 
 
-		}
-
-		return new int[0];
-
-	}
-
-
-	// This method is supposed to "process" the "raw" set of colored nodes before manipulating it
-
-	private static  int[][] process(int[][] colored) {
-		if (colored.length == 0) {
-			return colored;
-		}
-
-		else {
-			int countZero = 0;
-
-			if (colored.length >=2) {
-				Arrays.sort(colored, (a, b) -> Integer.compare(a[1], b[1]));
-				}
-			int currentColor  = 0;
-			int count = 0;
-			for (int i = 0; i< colored.length; i++) {
-				if (colored[i][1] == 0)
-					countZero++;
-				else {
-					if (colored[i][1] != currentColor) {
-						count++;
-					}
-					currentColor = colored[i][1];
-					colored[i][1] = count;
-
-				}
-			}
-
-			if (colored.length >=2) {
-				Arrays.sort(colored, (a, b) -> Integer.compare(a[0], b[0]));
-			}
-
-			int[][] coloredNonZero = new int[colored.length-countZero][2];
-			int counter = 0;
-			for (int i = 0;i<colored.length;i++) {
-				if (colored[i][1]!=0) {
-					coloredNonZero[counter][0] = colored[i][0];
-					coloredNonZero[counter][1] = colored[i][1];
-					counter++;
-				}
+            boolean color = true;
+            for (int j = 0; j< graphList.size();j++)
+            {
+                if (itemArray.length>= graphList.get(j).get(1)){
+                    if (itemArray[(graphList.get(j).get(0)-1)] != 0 && itemArray[(graphList.get(j).get(1)-1)] !=0 && itemArray[(graphList.get(j).get(0)-1)] == itemArray[(graphList.get(j).get(1)-1)])
+                    {
+                        color = false;
+                        break;
+                    }
+                }
+            }
 
 
-			}
+            if (color == true) {
 
-			return coloredNonZero;
+                if (item.size() == k-colored.length) {
 
-		}
+                    return itemArray;
+
+                }
+
+                dfs(n, k, item, itemArray,colored,index);
+            }
+
+            item.remove(item.size() - 1);
+
+            for (int o = 0; o<index.size();o++) {
+                itemArray[index.get(o)] = 0;
+            }
 
 
-	}
+
+        }
+
+        return new int[0];
+
+    }
+
+
+    // This method is supposed to "process" the "raw" set of colored nodes before manipulating it
+
+    private static  int[][] process(int[][] colored) {
+        if (colored.length == 0) {
+            return colored;
+        }
+
+        else {
+            int countZero = 0;
+
+            if (colored.length >=2) {
+                Arrays.sort(colored, (a, b) -> Integer.compare(a[1], b[1]));
+            }
+            int currentColor  = 0;
+            int count = 0;
+            for (int i = 0; i< colored.length; i++) {
+                if (colored[i][1] == 0)
+                    countZero++;
+                else {
+                    if (colored[i][1] != currentColor) {
+                        count++;
+                    }
+                    currentColor = colored[i][1];
+                    colored[i][1] = count;
+
+                }
+            }
+
+            if (colored.length >=2) {
+                Arrays.sort(colored, (a, b) -> Integer.compare(a[0], b[0]));
+            }
+
+            int[][] coloredNonZero = new int[colored.length-countZero][2];
+            int counter = 0;
+            for (int i = 0;i<colored.length;i++) {
+                if (colored[i][1]!=0) {
+                    coloredNonZero[counter][0] = colored[i][0];
+                    coloredNonZero[counter][1] = colored[i][1];
+                    counter++;
+                }
+
+
+            }
+
+            return coloredNonZero;
+
+        }
+
+
+    }
 
 
 
 }
 
 
-		
 
