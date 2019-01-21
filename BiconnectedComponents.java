@@ -24,6 +24,11 @@ class BiconnectedComponents {
     class Edge {
         int u;
         int v;
+
+        Edge() {
+            this.u = 0;
+            this.v = 0;
+        }
         Edge(int u, int v)
         {
             this.u = u;
@@ -48,7 +53,7 @@ class BiconnectedComponents {
         E++;
     }
 
-     static void readGraph(String graphName) {
+      void readGraph(String graphName) {
 
 
         String inputfile = graphName;
@@ -62,7 +67,7 @@ class BiconnectedComponents {
 
 
         //! e will contain the edges of the graph
-        ColEdge e[] = null;
+        Edge e[] = null;
 
         try 	{
             FileReader fr = new FileReader(inputfile);
@@ -96,7 +101,7 @@ class BiconnectedComponents {
                 //if(DEBUG) System.out.println(COMMENT + " Expected number of edges = "+m);
             }
 
-            e = new ColEdge[E];
+            e = new Edge[E];
 
             for( int d=0; d<E; d++)
             {
@@ -109,7 +114,7 @@ class BiconnectedComponents {
                     System.out.println("Error! Malformed edge line: "+record);
                     System.exit(0);
                 }
-                e[d] = new ColEdge();
+                e[d] = new Edge();
 
                 e[d].u = Integer.parseInt(data[0]);
                 e[d].v = Integer.parseInt(data[1]);
