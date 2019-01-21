@@ -9,9 +9,12 @@ class graph1 {
 	private static LinkedList<Integer> adj[]; //adjacency list
 	private static int[][] graph = new int[edgeNum][2];
 	private static int max = 0;
+	private static int bestRes = 0;
 	private static String inputFile;
 	private static ArrayList<Integer> order;
 	private static ArrayList<Integer> degree;
+	private static ArrayList<Integer> finalResult;
+	private static int count = 0;
 	
 	//constructor for the graph
 	public graph1(int v) {
@@ -34,42 +37,47 @@ class graph1 {
 		
 		//initialize all vertices as unassigned
 		Arrays.fill(result, -1);
+		ArrayList<Integer> order = new ArrayList<Integer>();
+		
+		//this arraylist stores the degree of each vertex (from first to last)
+		if (count == 100) {
+			//ArrayList<Integer> order = new ArrayList<Integer>();
+			ArrayList<Integer> degree = new ArrayList<Integer>();
+			for (int i = 0; i < nodeNum; i++) {
+				int d = adj[i].size();
+				degree.add(d);
+			}
+			//System.out.println(degree);
+			int maxDegree = Collections.max(degree);
+			
+		//this loop will find the index of the vertex with maximum degree and
+		//will store it in the order array list
+			while (maxDegree > 0) {
+				maxDegree = Collections.max(degree);
+				if (maxDegree == -1) break;
+				int ind = degree.indexOf(maxDegree) + 1; //because we will start from vertex 1
+				order.add(ind);
+				degree.set(ind-1, -1); //ind-1 , because the indexes in degree list start from 0
+			}
+		}
+		//System.out.println(order);
 		
 		//create an arrayList with random numbers from 1 to the nr of nodes
 		//to use it for coloring the nodes in random order
-		/*ArrayList<Integer> order = new ArrayList<Integer>();
-		Random rd = new Random();
-		for (int j = 0; j < nodeNum; j++) {
-			int randpos = rd.nextInt(nodeNum) + 1;
-			while (order.contains(randpos)) {
-				randpos = rd.nextInt(nodeNum) + 1;
+		else { 
+			//ArrayList<Integer> order = new ArrayList<Integer>();
+			Random rd = new Random();
+			for (int j = 0; j < nodeNum; j++) {
+				int randpos = rd.nextInt(nodeNum) + 1;
+				while (order.contains(randpos)) {
+					randpos = rd.nextInt(nodeNum) + 1;
+				}
+				order.add(randpos);
 			}
-			order.add(randpos);
-		}*/
+		}
 		//System.out.println(order);
-		//this arraylist stores the degree of each vertex (from first to last)
-		ArrayList<Integer> degree = new ArrayList<Integer>();
-		ArrayList<Integer> order = new ArrayList<Integer>();
-		for (int i = 0; i < nodeNum; i++) {
-			int d = adj[i].size();
-			degree.add(d);
-		}
-		//System.out.println(degree);
-		
-		int maxDegree = Collections.max(degree);
-		//this loop will find the index of the vertex with maximum degree and
-		//will store it in the order array list
-		while (maxDegree > 0) {
-			maxDegree = Collections.max(degree);
-			if (maxDegree == -1) break;
-			int ind = degree.indexOf(maxDegree) + 1; //because we will start from vertex 1
-			order.add(ind);
-			degree.set(ind-1, -1); //ind-1 , because the indexes in degree list start from 0
-		}
-		//System.out.println(order); 
 		
 					
-		
 		//a temporary array to store the available colors. False value of 
 		// available[cr] would mean that the color cr is assigned to one of 
 		//its adjacent vertices
@@ -163,9 +171,19 @@ class graph1 {
 		for (int i = 0; i < g1.edgeNum; i++) {
 			g1.addEdge(g1.graph[i][0], g1.graph[i][1]);
 		} //add edges from graph array to graph g1
-		g1.greedyColoring();
-		max = max + 1; //because first color had value 0
-		System.out.println("Number of colors used is " + max);
+		ArrayList<Integer> finalResult = new ArrayList<Integer>();
+		for (count = 1; count <= 100; count++) {
+			g1.greedyColoring();
+			max = max + 1; //because first color had value 0
+			//System.out.println("Number of colors used is " + max);
+			finalResult.add(max);
+			max = 0;
+		}
+		//System.out.println(finalResult);
+		
+		int bestRes = Collections.min(finalResult);
+		System.out.println("the best result out of 100 is " + bestRes);
+			
 	}
 	
 }
