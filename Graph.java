@@ -157,9 +157,15 @@ public class Graph
         Scanner sc = new Scanner(System.in);
         System.out.println("Please input the graph name (a .txt file): ");
         Graph.graphName = sc.next();
+        double start = System.nanoTime();
         Graph big = new Graph();
         big.readGraph(graphName);
         big.chromaticNum(big);
+        big.upperboundWP();
+        
+        double time = System.nanoTime() - start;
+        System.out.println(time/1000000000 + " seconds");
+        
 
     }
 
