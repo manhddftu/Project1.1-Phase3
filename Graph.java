@@ -5,7 +5,7 @@ import java.lang.*;
 
 /**
 
- MANUAL GUIDELINES ON USING MY gameAlgorithm.java file:
+ MANUAL GUIDELINES ON USING THIS FILE:
 
  1.VARIABLE:
 
@@ -28,9 +28,9 @@ import java.lang.*;
 
  When you run the file after compilation, just write the number of the graph instead of its fucking long name: block3.... For example: java gameAlgorithm 05
 
- * @author  Manh Dao
- * @version 1.1
- * @since   2019-01-07
+ * @author  Manh, Paula, Mathias, Stan, Simon
+ * @version 1.2
+ * @since   2019-01-21
  */
 
 class Edge
@@ -109,7 +109,6 @@ public class Graph
             }
         }
 
-
         countUnsorted = new int[n][2];
         System.arraycopy(count,0,countUnsorted,0,count.length);
         Arrays.sort(count, (a, b) -> Integer.compare(a[1], b[1]));
@@ -155,17 +154,12 @@ public class Graph
 
     public static void main(String[] args) throws IOException {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Please input the graph name (a .txt file): ");
+        System.out.println("Please input the graph name (including .txt): ");
         Graph.graphName = sc.next();
-        double start = System.nanoTime();
         Graph big = new Graph();
         big.readGraph(graphName);
         big.chromaticNum(big);
-        big.upperboundWP();
-        
-        double time = System.nanoTime() - start;
-        System.out.println(time/1000000000 + " seconds");
-        
+
 
     }
 
@@ -203,8 +197,6 @@ public class Graph
             if (chromaticNumber<k)
                 chromaticNumber=k;
 
-
-
     }
         return chromaticNumber;
 
@@ -228,6 +220,19 @@ public class Graph
         }
 
         return checker;
+    }
+
+
+
+    private boolean isBipartite(Graph big) {
+        big.connectedComponents();
+        for (int i = 0; i< big.connectedComponents.size();i++) {
+            Graph component = new Graph(big, big.connectedComponents.get(i));
+            if (component.containsOdd(component.adjacencyMatrix,0))
+                return false;
+        }
+
+        return true;
     }
 
     private void readGraph(String graphName) {
@@ -435,41 +440,42 @@ public class Graph
         // Create a queue (FIFO) of vertex numbers and
         // enqueue source vertex for BFS traversal
         LinkedList<Integer> q = new LinkedList<Integer>();
-        q.add(src+1);
+        q.add(src);
 
         // Run while there are vertices in queue
         // (Similar to BFS)
-        while (!q.isEmpty())
+        while (q.size() != 0)
         {
             // Dequeue a vertex from queue
-            int u = q.peek();
-            q.pop();
+            int u = q.poll();
 
             // Return true if there is a self-loop
-            if (G[u-1][u-1] == 1)
+            if (G[u][u] == 1)
                 return true;
 
             // Find all non-colored adjacent vertices
-            for (int v = 1; v < n+1; ++v)
+            for (int v = 0; v < n; ++v)
             {
                 // An edge from u to v exists and
                 // destination v is not colored
-                if (G[u-1][v-1] == 1 && colorArr[v-1] == -1)
+                if (G[u][v] == 1 && colorArr[v] == -1)
                 {
                     // Assign alternate color to this
                     // adjacent v of u
-                    colorArr[v-1] = 1 - colorArr[u-1];
-                    q.push(v);
+                    colorArr[v] = 1 - colorArr[u];
+                    q.add(v);
                 }
 
                 // An edge from u to v exists and
                 // destination v is colored with same
                 // color as u
-                else if (G[u-1][v-1] == 1 && colorArr[v-1] ==
-                        colorArr[u-1])
+                else if (G[u][v] == 1 && colorArr[v] ==
+                        colorArr[u])
                     return true;
             }
         }
+
+        //System.out.println(Arrays.toString(colorArr));
 
         // If we reach here, then all adjacent
         // vertices can be colored with alternate
@@ -673,19 +679,15 @@ public class Graph
     // Produce the lower bound by searching for the clique number of a given graph
 
     private int lowerBound()
-
+    
     {
-
+    	double startTime = System.nanoTime()/1000000000;
         int lowerBound = 2;
-        //upperboundWP();
-        //System.out.println(upperBound);
-
-        //System.out.println(upperBound);
-
         boolean clique = true;
-
-        while (clique == true && lowerBound <= upperBound)
+        double currentTime = System.nanoTime()/1000000000;
+        while (clique == true && lowerBound <= upperBound && (currentTime-startTime<105))
         {
+        	currentTime = System.nanoTime()/1000000000;
             if (clique(n,lowerBound).size()>0)
             {
                 cliqueGraph = clique(n,lowerBound).get(0);
@@ -695,8 +697,13 @@ public class Graph
             else {
                 clique = false;
             }
+	
 
-
+        }
+        if(currentTime-startTime>105){
+        	System.out.println("The lower bound algorithm was timed out.");
+        	System.out.println("timeout at: " + (currentTime-startTime));
+        	return lowerBound-1;
         }
         return lowerBound-1;
 
@@ -868,16 +875,23 @@ public class Graph
 
      public void chromaticNum(Graph big) throws IOException {
 
-         if (!containsOdd(adjacencyMatrix, 0)) {
+        if (big.m >= 100000 && !containsOdd(big.adjacencyMatrix,0))
+            System.out.println("CHROMATIC NUMBER = 2");
+
+
+         else if (isBipartite(big)) {
              System.out.println("CHROMATIC NUMBER = 2");
-             ;
+
          }
 
          else
              {
-                 big.upperBound = Math.min(big.upperboundWP(),big.upperboundRLF(0,big.countList));
+                 greedy Greedy = new greedy(big.n);
+                 int upperboundGreedy = Greedy.greedyColoring(big.graphName);
+                 big.upperBound = Math.min(Math.min(big.upperboundWP(),big.upperboundRLF(0,big.countList)),upperboundGreedy);
+                 System.out.println("NEW BEST UPPER BOUND = " + big.upperBound);
                  big.lowerBound = big.lowerBound();
-
+                 System.out.println("NEW BEST LOWER BOUND = " + big.lowerBound);
 
                  boolean checkComplete = true;
 
@@ -913,12 +927,10 @@ public class Graph
 
          } else if (checkComplete == true) {
              System.out.println("CHROMATIC NUMBER = " + n2);
-         } else if (upperBound == lowerBound) {
-             System.out.println("CHROMATIC NUMBER = " + upperBound);
+         } else if (big.upperBound == big.lowerBound) {
+             System.out.println("CHROMATIC NUMBER = " + big.upperBound);
 
          } else {
-             System.out.println("NEW BEST UPPER BOUND = " + big.upperBound);
-             System.out.println("NEW BEST LOWER BOUND = " + big.lowerBound);
              System.out.println("CHROMATIC NUMBER = " + chromaticNumberBC(big));
          }
 
@@ -1187,8 +1199,6 @@ public class Graph
             }
         }
     }
-
-
 
 
 
