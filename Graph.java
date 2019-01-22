@@ -159,7 +159,6 @@ public class Graph
         big.readGraph(graphName);
         big.chromaticNum(big);
 
-
     }
 
 
@@ -681,11 +680,10 @@ public class Graph
 
     {
         double startTime = System.nanoTime()/1000000000;
-        //System.out.println(startTime);
         int lowerBound = 2;
         boolean clique = true;
         double currentTime = System.nanoTime()/1000000000;
-        //System.out.println(currentTime);
+
         while (clique == true && lowerBound <= upperBound && currentTime-startTime<105)
         {
             currentTime = System.nanoTime()/1000000000;
@@ -701,9 +699,9 @@ public class Graph
 
         }
         if(currentTime-startTime>105){
-            System.out.println("The lower bound algorithm was timed out.");
+
             System.out.println("NEW BEST LOWER BOUND = " + (lowerBound-1));
-            //return lowerBound-1;
+            return lowerBound-1;
         }
         return lowerBound-1;
 
