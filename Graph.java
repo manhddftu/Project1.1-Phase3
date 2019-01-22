@@ -168,7 +168,7 @@ public class Graph
     private void printAdj(Graph g) {
         for (int j =0; j< g.adjacencyMatrix.length;j++) {
             System.out.println(Arrays.toString(g.adjacencyMatrix[j]));
-            }
+        }
 
     }
 
@@ -197,7 +197,7 @@ public class Graph
             if (chromaticNumber<k)
                 chromaticNumber=k;
 
-    }
+        }
         return chromaticNumber;
 
     }
@@ -594,8 +594,8 @@ public class Graph
                     if (adjacencyMatrix[nextNode - 1][nonadjacentDegreeDescending.get(i) - 1] == 1) {
                         adjacent.add(nonadjacentDegreeDescending.get(i));
                         //nonadjacentDegreeDescending.set(nonadjacentDegreeDescending.indexOf(nonadjacentDegreeDescending.get(i)),null);
-                        }
-                     else {
+                    }
+                    else {
                         nonadjacentTemp.add(nonadjacentDegreeDescending.get(i));
                     }
 
@@ -681,22 +681,30 @@ public class Graph
     private int lowerBound()
 
     {
+        double startTime = System.nanoTime()/1000000000;
+        //System.out.println(startTime);
         int lowerBound = 2;
         boolean clique = true;
-
-        while (clique == true && lowerBound <= upperBound)
+        double currentTime = System.nanoTime()/1000000000;
+        //System.out.println(currentTime);
+        while (clique == true && lowerBound <= upperBound && currentTime-startTime<105)
         {
-            if (clique(n,lowerBound).size()>0)
-            {
-                cliqueGraph = clique(n,lowerBound).get(0);
-                lowerBound++;
-            }
+            currentTime = System.nanoTime()/1000000000;
 
-            else {
-                clique = false;
-            }
+                //System.out.println(currentTime);
+                if (clique(n, lowerBound).size() > 0) {
+                    cliqueGraph = clique(n, lowerBound).get(0);
+                    lowerBound++;
+                } else {
+                    clique = false;
+                }
 
 
+        }
+        if(currentTime-startTime>105){
+            System.out.println("The lower bound algorithm was timed out.");
+            System.out.println("NEW BEST LOWER BOUND = " + (lowerBound-1));
+            //return lowerBound-1;
         }
         return lowerBound-1;
 
@@ -723,7 +731,7 @@ public class Graph
 
 
     private void dfs2(int n, int k, int start, ArrayList<Integer> item,
-                             ArrayList<ArrayList<Integer>> res) {
+                      ArrayList<ArrayList<Integer>> res) {
         if (item.size() == k) {
             res.add(new ArrayList<Integer>(item));
             return;
@@ -858,78 +866,78 @@ public class Graph
     }
 
     public int chromaticnumDFS() {
-            if (upperBound == lowerBound)
-                return upperBound;
-            else {
-                return minimum(new int[0][0]);
+        if (upperBound == lowerBound)
+            return upperBound;
+        else {
+            return minimum(new int[0][0]);
 
-            }
         }
+    }
 
-     public void chromaticNum(Graph big) throws IOException {
+    public void chromaticNum(Graph big) throws IOException {
 
         if (big.m >= 100000 && !containsOdd(big.adjacencyMatrix,0))
             System.out.println("CHROMATIC NUMBER = 2");
 
 
-         else if (isBipartite(big)) {
-             System.out.println("CHROMATIC NUMBER = 2");
+        else if (isBipartite(big)) {
+            System.out.println("CHROMATIC NUMBER = 2");
 
-         }
+        }
 
-         else
-             {
-                 greedy Greedy = new greedy(big.n);
-                 int upperboundGreedy = Greedy.greedyColoring(big.graphName);
-                 big.upperBound = Math.min(Math.min(big.upperboundWP(),big.upperboundRLF(0,big.countList)),upperboundGreedy);
-                 System.out.println("NEW BEST UPPER BOUND = " + big.upperBound);
-                 big.lowerBound = big.lowerBound();
-                 System.out.println("NEW BEST LOWER BOUND = " + big.lowerBound);
+        else
+        {
+            greedy Greedy = new greedy(big.n);
+            int upperboundGreedy = Greedy.greedyColoring(big.graphName);
+            big.upperBound = Math.min(Math.min(big.upperboundWP(),big.upperboundRLF(0,big.countList)),upperboundGreedy);
+            System.out.println("NEW BEST UPPER BOUND = " + big.upperBound);
+            big.lowerBound = big.lowerBound();
+            System.out.println("NEW BEST LOWER BOUND = " + big.lowerBound);
 
-                 boolean checkComplete = true;
+            boolean checkComplete = true;
 
-         boolean checkCycle = true;
+            boolean checkCycle = true;
 
-         //Check if the graph is a complete graph:
+            //Check if the graph is a complete graph:
 
-         for (int i = 0; i <= n - 1; i++) {
-             if (count[i][1] != n - 1) {
-                 checkComplete = false;
-                 break;
-             }
-         }
+            for (int i = 0; i <= n - 1; i++) {
+                if (count[i][1] != n - 1) {
+                    checkComplete = false;
+                    break;
+                }
+            }
 
-         // Check if the graph is a cycle
+            // Check if the graph is a cycle
 
-         for (int i = 0; i <= n2 - 1; i++) {
-             if (count[i][1] != 2) {
-                 checkCycle = false;
-                 break;
-             }
-         }
+            for (int i = 0; i <= n2 - 1; i++) {
+                if (count[i][1] != 2) {
+                    checkCycle = false;
+                    break;
+                }
+            }
 
-         // Produce the exact chromatic number if the input graph is a cycle or a complete graph or a bipartite graph, else produce the upper bound and lower bound and try to compute the chromatic number
+            // Produce the exact chromatic number if the input graph is a cycle or a complete graph or a bipartite graph, else produce the upper bound and lower bound and try to compute the chromatic number
 
 
-         if (checkCycle == true) {
-             if (n2 % 2 != 0) {
-                 System.out.println("CHROMATIC NUMBER = 3");
-             } else {
-                 System.out.println("CHROMATIC NUMBER = 2");
-             }
+            if (checkCycle == true) {
+                if (n2 % 2 != 0) {
+                    System.out.println("CHROMATIC NUMBER = 3");
+                } else {
+                    System.out.println("CHROMATIC NUMBER = 2");
+                }
 
-         } else if (checkComplete == true) {
-             System.out.println("CHROMATIC NUMBER = " + n2);
-         } else if (big.upperBound == big.lowerBound) {
-             System.out.println("CHROMATIC NUMBER = " + big.upperBound);
+            } else if (checkComplete == true) {
+                System.out.println("CHROMATIC NUMBER = " + n2);
+            } else if (big.upperBound == big.lowerBound) {
+                System.out.println("CHROMATIC NUMBER = " + big.upperBound);
 
-         } else {
-             System.out.println("CHROMATIC NUMBER = " + chromaticNumberBC(big));
-         }
+            } else {
+                System.out.println("CHROMATIC NUMBER = " + chromaticNumberBC(big));
+            }
 
-     }
+        }
 
-     }
+    }
 
 
 
@@ -1107,9 +1115,9 @@ public class Graph
                     while (st.getLast().u != u || st.getLast().v != v) {
                         //System.out.print(st.getLast().u + "--" + st.getLast().v + " ");
 
-                            component.add(st.getLast().u);
+                        component.add(st.getLast().u);
 
-                            component.add(st.getLast().u);
+                        component.add(st.getLast().u);
                         st.removeLast();
                     }
                     ArrayList<Integer> componentArr = new ArrayList<Integer>();
@@ -1121,9 +1129,9 @@ public class Graph
 
                     //component = new ArrayList<Integer>();
                     component = new HashSet<Integer>();
-                        component.add(st.getLast().u);
-                        component.add(st.getLast().v);
-                     componentArr = new ArrayList<Integer>();
+                    component.add(st.getLast().u);
+                    component.add(st.getLast().v);
+                    componentArr = new ArrayList<Integer>();
 
                     if (!biconnectedComponents.contains(componentArr))
                         biconnectedComponents.add(componentArr);
@@ -1174,8 +1182,8 @@ public class Graph
                 int u = st.getLast().u;
                 int v = st.getLast().v;
                 //System.out.print(st.getLast().u + "--" + st.getLast().v + " ");
-                    component.add(u);
-                    component.add(v);
+                component.add(u);
+                component.add(v);
                 st.removeLast();
             }
 
@@ -1196,6 +1204,5 @@ public class Graph
 
 
 }
-
 
 
