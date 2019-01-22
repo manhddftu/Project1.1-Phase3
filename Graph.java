@@ -153,9 +153,8 @@ public class Graph
 
 
     public static void main(String[] args) throws IOException {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Please input the graph name (including .txt): ");
-        Graph.graphName = sc.next();
+
+        Graph.graphName = args[0];
         Graph big = new Graph();
         big.readGraph(graphName);
         big.chromaticNum(big);
