@@ -326,18 +326,7 @@ class BiconnectedComponents {
 
     }
 
-    public static void main(String args[])
-    {
 
-
-
-
-
-        //System.out.println("Above are " + g.count + " biconnected components in graph");
-
-
-
-    }
 }
 
 
